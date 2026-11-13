@@ -621,7 +621,7 @@ final class SnowSimulation {
             if sculptMode { stirred() }
         }
     }
-    var snowmanCount: Int { snowmen.filter { layers.contains(where: { l in l === $0.layer }) }.count }
+    var snowmanCount: Int { snowmen.filter { hasLayer($0.layer) }.count }
     var hasActiveSnowmen: Bool { !snowmen.isEmpty || !thrownBalls.isEmpty || sculpt != nil }
     var onSnowmenChanged: ((Int) -> Void)?
 
@@ -3849,10 +3849,14 @@ extension SnowSimulation {
 
     // MARK: - Snowmen
 
+    private func hasLayer(_ layer: SnowLayer) -> Bool {
+        layers.contains { $0 === layer }
+    }
+
     /// Begins sculpting at `point`: either grabbing/booping an existing snowman or rolling a new snowball.
     func beginSculpt(at point: SIMD2<Float>) {
         stirred()
-        if let hit = snowmen.last(where: { layers.contains(where: { l in l === $0.layer }) && $0.contains(point, padding: 8) }) {
+        if let hit = snowmen.last(where: { hasLayer($0.layer) && $0.contains(point, padding: 8) }) {
             let anchor = hit.anchor().origin
             sculpt = SculptHand(
                 position: point,
@@ -3994,7 +3998,7 @@ extension SnowSimulation {
     /// Right-clicking a snowman crumbles it back into snow powder; returns whether one was hit.
     @discardableResult
     func crumbleSnowman(at point: SIMD2<Float>) -> Bool {
-        guard let idx = snowmen.lastIndex(where: { layers.contains(where: { l in l === $0.layer }) && $0.contains(point, padding: 8) }) else {
+        guard let idx = snowmen.lastIndex(where: { hasLayer($0.layer) && $0.contains(point, padding: 8) }) else {
             return false
         }
         let s = snowmen.remove(at: idx)
